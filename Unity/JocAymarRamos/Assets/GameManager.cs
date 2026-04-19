@@ -8,8 +8,13 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Ajustes de Partida")]
-    public bool esMultijugador = false; // Ponlo a true si pruebas con dos jugadores
+    public bool esMultijugador; // Automático según desde dónde se inicia la escena
     public float tiempoParaGanar = 360f; // 6 minutos reales
+
+    [Header("Spawners de Jugadores")]
+    public GameObject playerPrefab;
+    public Transform spawnP1;
+    public Transform spawnP2;
 
     [Header("UI Reloj")]
     public TextMeshProUGUI relojText;
@@ -17,7 +22,66 @@ public class GameManager : MonoBehaviour
     private float tiempoSobrevivido = 0f;
     private bool partidaActiva = true;
 
-    void Awake() { if (Instance == null) Instance = this; }
+    void Awake() 
+    { 
+        if (Instance == null) Instance = this; 
+        
+        // Cargar automáticamente si es multijugador (1 = Sala, 0 = Solitario)
+        esMultijugador = PlayerPrefs.GetInt("esMultijugador", 0) == 1;
+    }
+
+    void Start()
+    {
+        if (playerPrefab != null)
+        {
+            if (esMultijugador)
+            {
+                // Instanciar a P1 (Host) y a P2 (Cliente)
+                GameObject p1 = Instantiate(playerPrefab, spawnP1 != null ? spawnP1.position : Vector3.zero, Quaternion.identity);
+                GameObject p2 = Instantiate(playerPrefab, spawnP2 != null ? spawnP2.position : new Vector3(2, 0, 0), Quaternion.identity);
+                
+                // Ignorar colisiones físicas entre jugadores para evitar que se empujen al revivir
+                Collider2D col1 = p1.GetComponent<Collider2D>();
+                Collider2D col2 = p2.GetComponent<Collider2D>();
+                if (col1 != null && col2 != null) Physics2D.IgnoreCollision(col1, col2);
+
+                PlayerMovement mov1 = p1.GetComponent<PlayerMovement>();
+                PlayerMovement mov2 = p2.GetComponent<PlayerMovement>();
+
+                if (mov1 != null) mov1.isHostCharacter = true;
+                if (mov2 != null) mov2.isHostCharacter = false;
+
+                bool soyHost = PlayerPrefs.GetInt("esHost", 1) == 1;
+
+                if (soyHost)
+                {
+                    if (mov1 != null) mov1.esLocal = true;
+                    if (mov2 != null) mov2.esLocal = false;
+                    
+                    CameraFollow cam = FindObjectOfType<CameraFollow>();
+                    if (cam != null) cam.target = p1.transform;
+                }
+                else
+                {
+                    if (mov1 != null) mov1.esLocal = false;
+                    if (mov2 != null) mov2.esLocal = true;
+                    
+                    CameraFollow cam = FindObjectOfType<CameraFollow>();
+                    if (cam != null) cam.target = p2.transform;
+                }
+            }
+            else
+            {
+                // Modo Individual: instanciar solo 1 jugador
+                GameObject p1 = Instantiate(playerPrefab, spawnP1 != null ? spawnP1.position : Vector3.zero, Quaternion.identity);
+                if (p1.GetComponent<PlayerMovement>() != null) p1.GetComponent<PlayerMovement>().esLocal = true;
+
+                // Asignar cámara a P1
+                CameraFollow cam = FindObjectOfType<CameraFollow>();
+                if (cam != null) cam.target = p1.transform;
+            }
+        }
+    }
 
     void Update()
     {

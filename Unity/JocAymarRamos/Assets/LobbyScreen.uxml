@@ -15,12 +15,16 @@
                 
                 <ui:VisualElement name="ListContainer" style="background-color: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 5px; min-height: 100px;">
                     <ui:Label name="Player1" text="Esperant Host..." style="font-size: 24px; color: white; margin-bottom: 5px;" />
-                    <ui:Label name="Player2" text="Esperant Jugador 2..." style="font-size: 24px; color: rgba(255, 255, 255, 0.3);" />
+                    <ui:VisualElement style="flex-direction: row; align-items: center;">
+                        <ui:Label name="Player2" text="Esperant Jugador 2..." style="font-size: 24px; color: rgba(255, 255, 255, 0.3); margin-right: 15px;" />
+                        <ui:Label name="LblStatus" text="" style="font-size: 20px; color: rgb(255, 255, 0);" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement name="ButtonsContainer" style="flex-direction: row;">
                 <ui:Button name="BtnStartGame" text="COMENÇAR" class="menu-button" style="font-size: 24px; height: 50px; width: 200px; margin-right: 20px; background-color: rgb(0, 150, 0); color: white;" />
+                <ui:Button name="BtnReady" text="ESTIC LLEST" class="menu-button" style="display: none; font-size: 24px; height: 50px; width: 200px; margin-right: 20px; background-color: rgb(0, 150, 0); color: white;" />
                 
                 <ui:Button name="BtnBack" text="SORTIR" class="menu-button" style="font-size: 24px; height: 50px; width: 150px; color: rgb(200, 0, 0);" />
             </ui:VisualElement>

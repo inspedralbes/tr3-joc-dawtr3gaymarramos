@@ -20,7 +20,24 @@ public class EnemyAI : Agent
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        objetivoActual = playerTarget; // Por defecto, va a por ti
+        objetivoActual = GetClosestPlayer(); // Por defecto, va a por ti
+    }
+
+    private Transform GetClosestPlayer()
+    {
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        Transform closest = null;
+        float minDistance = Mathf.Infinity;
+        foreach(GameObject p in players)
+        {
+            float dist = Vector3.Distance(transform.position, p.transform.position);
+            if(dist < minDistance)
+            {
+                minDistance = dist;
+                closest = p.transform;
+            }
+        }
+        return closest;
     }
 
     // 2. Comienza un nuevo "Intento" (Episodio)
@@ -38,9 +55,20 @@ public class EnemyAI : Agent
     // 3. ¿Qué "ve" el enemigo? (Observaciones)
     public override void CollectObservations(VectorSensor sensor)
     {
-        // Por seguridad, si el objetivoActual se queda vacío, miramos al player
-        if (objetivoActual == null) objetivoActual = playerTarget;
-        if (objetivoActual == null) return;
+        // Por seguridad, si el objetivoActual se queda vacío, miramos al player más cercano
+        if (objetivoActual == null) objetivoActual = GetClosestPlayer();
+        
+        if (objetivoActual == null) 
+        {
+            // Rellenar con 0s para que la IA no se rompa si el jugador tarda 1 frame en cargar
+            sensor.AddObservation(transform.localPosition.x);
+            sensor.AddObservation(transform.localPosition.y);
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+            sensor.AddObservation(0f);
+            return;
+        }
 
         sensor.AddObservation(transform.localPosition.x);
         sensor.AddObservation(transform.localPosition.y);
@@ -106,11 +134,13 @@ public class EnemyAI : Agent
     // 7. LA MAGIA DE LA ANIMACIÓN Y EL CEREBRO
     private void Update()
     {
-        // --- ¡NUEVO! CEREBRO DE PERSECUCIÓN ---
-        if (playerTarget != null)
+        // --- ¡NUEVO! CEREBRO DE PERSECUCIÓN DINÁMICO ---
+        Transform targetMasCercano = GetClosestPlayer();
+
+        if (targetMasCercano != null)
         {
             // ¿A cuánta distancia estás?
-            float distancia = Vector3.Distance(transform.position, playerTarget.position);
+            float distancia = Vector3.Distance(transform.position, targetMasCercano.position);
 
             // Si estás a más de 15 metros, asume que te has teletransportado
             if (distancia > 15f && DoorManager.ultimaPuertaCruzada != null)
@@ -119,7 +149,7 @@ public class EnemyAI : Agent
             }
             else
             {
-                objetivoActual = playerTarget; // Va directo a por ti
+                objetivoActual = targetMasCercano; // Va directo a por ti
             }
         }
 

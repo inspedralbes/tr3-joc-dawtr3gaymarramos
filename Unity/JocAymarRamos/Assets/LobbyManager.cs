@@ -6,7 +6,9 @@ using UnityEngine.SceneManagement;
 
 public class LobbyManager : MonoBehaviour
 {
-    public string baseUrl = "http://localhost:3000/api/games";
+    // PROD: IP del servidor VPS (Port 80 via Nginx)
+    public string baseUrl = "http://204.168.205.93/api/games";
+    // DEV: public string baseUrl = "http://localhost:3000/api/games";
     
     private VisualElement root;
 
@@ -40,6 +42,8 @@ public class LobbyManager : MonoBehaviour
     public void ClickCrear()
     {
         string userId = PlayerPrefs.GetString("UserId", "65f1a2b3c4d5e6f7a8b9c0d1"); 
+        PlayerPrefs.SetInt("esHost", 1);
+        PlayerPrefs.Save();
         Debug.Log("Botó CREAR polsat. ID: " + userId);
         StartCoroutine(EnviarPeticion("create", "{\"hostId\":\"" + userId + "\"}"));
     }
@@ -50,6 +54,9 @@ public class LobbyManager : MonoBehaviour
         string codigo = (txtField != null) ? txtField.value.ToUpper() : "";
         string userId = PlayerPrefs.GetString("UserId", "65f1a2b3c4d5e6f7a8b9c0d1");
         
+        PlayerPrefs.SetInt("esHost", 0);
+        PlayerPrefs.Save();
+
         Debug.Log("Botó UNIR-SE polsat. Codi: " + codigo);
         StartCoroutine(EnviarPeticion("join", "{\"roomCode\":\"" + codigo + "\", \"userId\":\"" + userId + "\"}"));
     }

@@ -6,7 +6,9 @@ using Newtonsoft.Json; // Unity suele traerlo, si no, usa JsonUtility
 public class SocketHandler : MonoBehaviour
 {
     public static SocketIOUnity socket;
-    public string serverUrl = "http://localhost:3000";
+    // PROD: IP del servidor VPS (Port 80 via Nginx)
+    public string serverUrl = "http://204.168.205.93";
+    // DEV: public string serverUrl = "http://localhost:3000";
 
     void Awake()
     {

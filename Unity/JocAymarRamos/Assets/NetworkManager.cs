@@ -34,7 +34,9 @@ public class GameStatsData {
 // --- CLASE PRINCIPAL ---
 public class NetworkManager : MonoBehaviour
 {
-    private string baseUrl = "http://localhost:3000/api/users";
+    // PROD: IP del servidor VPS (Port 80 via Nginx)
+    private string baseUrl = "http://204.168.205.93/api/users";
+    // DEV: private string baseUrl = "http://localhost:3000/api/users";
 
     // Guardaremos los datos del jugador actual aquí para usarlos en todo el juego
     public static string PlayerID;

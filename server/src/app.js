@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
     console.log('🎮 Jugador conectado:', socket.id);
 
     // Evento para entrar en la sala de espera (Lobby)
-    socket.on('joinRoom', (data) => {
+    socket.on('joinRoom', async (data) => {
         const { roomCode, username } = data;
         socket.join(roomCode);
         
@@ -57,13 +57,22 @@ io.on('connection', (socket) => {
         socket.room = roomCode;
 
         // Avisamos a TODOS en la sala (incluido el que entra) para actualizar la lista
-        // Aquí enviamos la info para tu nueva escena de "Sala de Espera"
-        const clients = io.sockets.adapter.rooms.get(roomCode);
-        const numPlayers = clients ? clients.size : 0;
+        const roomSockets = await io.in(roomCode).fetchSockets();
+        const numPlayers = roomSockets.length;
+        
+        const players = [];
+        for (const s of roomSockets) {
+            if (s.username) {
+                players.push(s.username);
+            }
+        }
+        
+        console.log(`[DEBUG] Room ${roomCode} has players:`, players);
 
         io.in(roomCode).emit('roomUpdated', {
             playersCount: numPlayers,
-            lastJoined: username
+            lastJoined: username,
+            players: players
         });
     });
 
@@ -73,13 +82,20 @@ io.on('connection', (socket) => {
         socket.to(data.room).emit('playerMoved', { 
             id: socket.id, 
             pos: data.pos,
-            username: socket.username 
+            username: socket.username,
+            isHost: data.isHost
         });
     });
 
     // Evento para cuando el Host le da a "Comenzar Partida"
     socket.on('startGame', (roomCode) => {
         io.in(roomCode).emit('onGameStarted');
+    });
+
+    // Evento para cuando el Cliente confirma que está listo
+    socket.on('playerReady', (roomCode) => {
+        // Le avisamos a los demás de la sala (al Host) que el jugador está listo
+        socket.to(roomCode).emit('opponentReady');
     });
 
     socket.on('disconnect', () => {

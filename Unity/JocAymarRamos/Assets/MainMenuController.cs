@@ -21,11 +21,13 @@ public class MainMenuController : MonoBehaviour
         
         // Entrar a l'escena "Joc"
         if (btnNouJoc != null) {
-        btnNouJoc.clicked += () => {
-        Debug.Log("Intentant carregar escena 2...");
-        SceneManager.LoadScene(2); 
-    };
-}
+            btnNouJoc.clicked += () => {
+                Debug.Log("Intentant carregar escena individual...");
+                PlayerPrefs.SetInt("esMultijugador", 0);
+                PlayerPrefs.Save();
+                SceneManager.LoadScene(2); 
+            };
+        }
 
         // Multiplayer (de moment només log per provar)
         if (btnCrearSala != null) {

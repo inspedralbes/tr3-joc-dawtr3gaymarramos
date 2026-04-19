@@ -6,12 +6,11 @@ public class PlayerHealth : MonoBehaviour
     [Header("Configuración de Vida")]
     // Como acordamos que Álvaro te tumba de un golpe al estilo FNaF, puedes dejarlo en 1 o 3, 
     // pero te tumbará igual si usamos la función CaerAbatido()
-    public int maxHealth = 1; 
+    public int maxHealth = 3; 
     private int currentHealth;
     public TextMeshProUGUI textoVidas;
 
     [Header("Modo de Juego")]
-    public bool esMultijugador = true; // Ponlo a true para poder reanimar
     public bool estaAbatido = false;   // Para saber si está tirado llorando
 
     [Header("Mecánica cooperativa de Revivir")]
@@ -30,18 +29,58 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
         animator = GetComponent<Animator>();
+        
+        // Buscar el HUD automáticamente si no está asignado
+        if (textoVidas == null)
+        {
+            // Busca un objeto en la escena que contenga el texto de vidas (por defecto "Vidas" o "TextVidas")
+            // Reemplaza "VidasText" por el nombre exacto de tu objeto en la jerarquía si es distinto.
+            GameObject hud = GameObject.Find("TextVidas") ?? GameObject.Find("Vidas") ?? GameObject.Find("VidasText");
+            if (hud != null)
+            {
+                textoVidas = hud.GetComponent<TextMeshProUGUI>();
+            }
+        }
+
         ActualizarTexto();
     }
 
     void Update()
     {
-        if (esMultijugador && estaAbatido && siendoRevivido)
+        if (GameManager.Instance != null && GameManager.Instance.esMultijugador && estaAbatido)
         {
-            temporizadorRevivir += Time.deltaTime;
-            
-            if (temporizadorRevivir >= tiempoParaRevivir)
+            // Comprobar por distancia si hay un compañero vivo cerca (así evitamos problemas de físicas)
+            bool compañeroCerca = false;
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+            foreach (var p in players)
             {
-                Revivir();
+                if (p != this.gameObject) // No contarnos a nosotros mismos
+                {
+                    PlayerHealth hp = p.GetComponent<PlayerHealth>();
+                    if (hp != null && !hp.estaAbatido)
+                    {
+                        if (Vector3.Distance(transform.position, p.transform.position) < 1.5f)
+                        {
+                            compañeroCerca = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            siendoRevivido = compañeroCerca;
+
+            if (siendoRevivido)
+            {
+                temporizadorRevivir += Time.deltaTime;
+                if (temporizadorRevivir >= tiempoParaRevivir)
+                {
+                    Revivir();
+                }
+            }
+            else
+            {
+                temporizadorRevivir = 0f; // Si se separa, el contador vuelve a cero
             }
         }
     }
@@ -61,6 +100,10 @@ public class PlayerHealth : MonoBehaviour
 
     void ActualizarTexto()
     {
+        // Bloqueo importante: Solo el jugador local puede escribir en el HUD de su propia pantalla
+        PlayerMovement mov = GetComponent<PlayerMovement>();
+        if (mov != null && !mov.esLocal) return; 
+
         if (textoVidas != null)
         {
             textoVidas.text = "Vidas: " + currentHealth;
@@ -72,7 +115,10 @@ public class PlayerHealth : MonoBehaviour
         estaAbatido = true;
         
         if (animator != null) animator.SetBool("EstaMuerto", true);
-        if (scriptMovimiento != null) scriptMovimiento.enabled = false;
+        
+        // Bloquear movimiento automáticamente buscando el script
+        PlayerMovement mov = GetComponent<PlayerMovement>();
+        if (mov != null) mov.enabled = false;
 
         // ESTO ES LO IMPORTANTE: Avisamos al GameManager de que hemos caído
         if (GameManager.Instance != null) 
@@ -86,32 +132,18 @@ public class PlayerHealth : MonoBehaviour
         estaAbatido = false;
         siendoRevivido = false;
         temporizadorRevivir = 0f;
-        currentHealth = maxHealth; 
+        currentHealth = 1; // Se levanta con 1 sola vida
         ActualizarTexto();
 
         // ¡ESTO QUITA LA ANIMACIÓN DE LLORAR Y TE PONE DE PIE!
         if (animator != null) animator.SetBool("EstaMuerto", false);
 
-        if (scriptMovimiento != null) scriptMovimiento.enabled = true;
+        // Desbloquear movimiento
+        PlayerMovement mov = GetComponent<PlayerMovement>();
+        if (mov != null) mov.enabled = true;
 
         Debug.Log("¡JUGADOR REVIVIDO!");
     }
 
-    // --- DETECCIÓN DE COMPAÑEROS PARA REVIVIR ---
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (estaAbatido && collision.CompareTag("Player"))
-        {
-            siendoRevivido = true;
-        }
-    }
-
-    void OnTriggerExit2D(Collider2D collision)
-    {
-        if (estaAbatido && collision.CompareTag("Player"))
-        {
-            siendoRevivido = false;
-            temporizadorRevivir = 0f; 
-        }
-    }
+    // --- NOTA: La detección por Triggers/Colisiones ha sido sustituida por el chequeo de distancia en Update() ---
 }

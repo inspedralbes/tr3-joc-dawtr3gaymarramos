@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  database:
+    image: mongo:latest
+    container_name: fnaf-mongodb
+    restart: always
+    ports:
+      - "27017:27017" # Només si ho necessites exposar per connectar-te amb MongoDB Compass, sinó esborra aquesta línia
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: fnaf-node-server
+    restart: always
+    environment:
+      - PORT=11100
+      - MONGO_URI=mongodb://database:27017/fnaf_db # El nom de la DB "fnaf_db" el pots canviar pel teu
+    depends_on:
+      - database
+
+  proxy:
+    image: nginx:alpine
+    container_name: fnaf-nginx
+    restart: always
+    ports:
+      - "80:80" # Exposa el port HTTP
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
