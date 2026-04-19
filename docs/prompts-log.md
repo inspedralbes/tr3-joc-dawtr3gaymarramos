@@ -27,7 +27,7 @@ També s'ha generat aquest fitxer de registre `prompts-log.md` a la carpeta `doc
 **Objectiu:** Executar el codi previst al pla d'implementació.
 
 **Prompt usat (Usuari):**
-> "a mi profe le da igual así que vamos por libre" *(Interpretat com a "aplica l'especificació i programa-ho").*
+> "al meu profe li dona igual aixi que anem per lliure" *(Interpretat com a "aplica l'especificació i programa-ho").*
 
 **Resultat de la IA:**
 S'han modificat els següents fitxers segons el `plan.md`:
@@ -44,7 +44,7 @@ S'han modificat els següents fitxers segons el `plan.md`:
 **Objectiu:** Arreglar que el jugador no es pugui moure quan mor i aclarir el flux d'inici de partida.
 
 **Prompt usat (Usuari):**
-> "me sale pero no inicia la partida en el jugador2 tengo que darle a "estic llest" solo eso, luego puedes hacer que cuando te quedas abatido tanto en individual como multijugador no te puedas mover"
+> "em surt pero no inicia la partida en el jugador2 tinc que donar a "estic llest" solament aixo, despres pots fer que quan te quedes abatut tant en individual com multijugador no et puguis moure"
 
 **Resultat de la IA i anàlisi de desviació:**
 * L'usuari esperava que en prémer "Estic Llest", la partida s'iniciés automàticament. L'agent d'IA ha aclarit que, segons el `spec.md` definit a la Iteració 1, premer "Estic Llest" només habilita el botó "Començar Partida" del Host. És el Host qui té l'autoritat per donar l'inici definitiu.
