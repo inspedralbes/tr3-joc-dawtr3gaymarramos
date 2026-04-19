@@ -16,13 +16,13 @@ public class PlayerMovement : MonoBehaviour
     private float syncTimer = 0f;
 
     [System.Serializable]
-    class Vector2Data { public float x { get; set; } public float y { get; set; } }
+    class Vector2Data { public float x; public float y; }
 
     [System.Serializable]
     class MoveEmitData { public string room; public Vector2Data pos; public bool isHost; }
 
     [System.Serializable]
-    class PlayerMovedResponse { public string id { get; set; } public Vector2Data pos { get; set; } public string username { get; set; } public bool isHost { get; set; } }
+    class PlayerMovedResponse { public string id; public Vector2Data pos; public string username; public bool isHost; }
 
     void Start()
     {
@@ -30,14 +30,18 @@ public class PlayerMovement : MonoBehaviour
         {
             targetPos = transform.position;
             SocketHandler.socket.OnUnityThread("playerMoved", (response) => {
+                Debug.Log("<<< RECIBIDO evento 'playerMoved' del servidor");
                 try {
+                    string json = response.ToString();
+                    Debug.Log("JSON recibido: " + json);
+                    
                     var data = response.GetValue<PlayerMovedResponse>();
-                    if (data.isHost == this.isHostCharacter) // Solo aceptamos datos de NUESTRO personaje homólogo
+                    if (data.isHost == this.isHostCharacter) 
                     {
                         targetPos = new Vector2(data.pos.x, data.pos.y);
                     }
                 } catch (System.Exception e) {
-                    Debug.LogError("Error parsing playerMoved: " + e.Message);
+                    Debug.LogError("Error al procesar playerMoved: " + e.Message);
                 }
             });
         }
@@ -94,21 +98,20 @@ public class PlayerMovement : MonoBehaviour
         rb.MovePosition(rb.position + movement.normalized * moveSpeed * Time.fixedDeltaTime);
 
         // Emitir nuestra posición al servidor 10 veces por segundo
-        if (GameManager.Instance != null && GameManager.Instance.esMultijugador)
+        syncTimer += Time.fixedDeltaTime;
+        if (syncTimer >= 0.1f) // Cada 0.1 segundos (10 Hz)
         {
-            syncTimer += Time.fixedDeltaTime;
-            if (syncTimer >= 0.1f) // Cada 0.1 segundos (10 Hz)
+            syncTimer = 0f;
+            if (SocketHandler.socket != null)
             {
-                syncTimer = 0f;
-                if (SocketHandler.socket != null)
-                {
-                    var data = new MoveEmitData { 
-                        room = PlayerPrefs.GetString("CodiSalaActual"), 
-                        pos = new Vector2Data { x = rb.position.x, y = rb.position.y },
-                        isHost = this.isHostCharacter
-                    };
-                    SocketHandler.socket.Emit("move", data);
-                }
+                string miSala = PlayerPrefs.GetString("CodiSalaActual", "SENSE_SALA");
+                var data = new MoveEmitData { 
+                    room = miSala, 
+                    pos = new Vector2Data { x = rb.position.x, y = rb.position.y },
+                    isHost = this.isHostCharacter
+                };
+                Debug.Log(">>> ENVIANDO move a la sala: " + miSala);
+                SocketHandler.socket.Emit("move", data);
             }
         }
     }

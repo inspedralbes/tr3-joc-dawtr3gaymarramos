@@ -21,8 +21,6 @@ public class PlayerHealth : MonoBehaviour
     [Header("Componentes")]
     private Animator animator;
     
-    // IMPORTANTE: Aquí pon el nombre de tu script de movimiento real.
-    // He puesto MonoBehaviour por defecto, pero cámbialo si tu script se llama PlayerController o PlayerMovement
     public MonoBehaviour scriptMovimiento; 
 
     void Start()
@@ -30,12 +28,11 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = maxHealth;
         animator = GetComponent<Animator>();
         
-        // Buscar el HUD automáticamente si no está asignado
+
         if (textoVidas == null)
         {
-            // Busca un objeto en la escena que contenga el texto de vidas (por defecto "Vidas" o "TextVidas")
-            // Reemplaza "VidasText" por el nombre exacto de tu objeto en la jerarquía si es distinto.
-            GameObject hud = GameObject.Find("TextVidas") ?? GameObject.Find("Vidas") ?? GameObject.Find("VidasText");
+
+            GameObject hud = GameObject.Find("TextVides") ?? GameObject.Find("Vides") ?? GameObject.Find("TextVidas") ?? GameObject.Find("Vidas");
             if (hud != null)
             {
                 textoVidas = hud.GetComponent<TextMeshProUGUI>();
@@ -106,7 +103,7 @@ public class PlayerHealth : MonoBehaviour
 
         if (textoVidas != null)
         {
-            textoVidas.text = "Vidas: " + currentHealth;
+            textoVidas.text = "Vides: " + currentHealth;
         }
     }
 

@@ -14,13 +14,15 @@ public class EnemyAI : Agent
 
     private Rigidbody2D rb;
     private Animator anim;
+    private Vector3 initialPosition; // Para resetear al inicio del episodio
 
     // 1. Inicialización
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        objetivoActual = GetClosestPlayer(); // Por defecto, va a por ti
+        initialPosition = transform.position; // Guardamos dónde empieza
+        objetivoActual = GetClosestPlayer(); 
     }
 
     private Transform GetClosestPlayer()
@@ -45,6 +47,8 @@ public class EnemyAI : Agent
     {
         if (rb == null) rb = GetComponent<Rigidbody2D>();
 
+        // Resetear posición y frenar
+        transform.position = initialPosition;
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
@@ -99,7 +103,15 @@ public class EnemyAI : Agent
         }
 
         rb.linearVelocity = dir * moveSpeed;
-        AddReward(-0.001f);
+
+        // --- NUEVAS RECOMPENSAS PARA APRENDER RÁPIDO ---
+        float distanciaActual = Vector3.Distance(transform.position, objetivoActual.position);
+        
+        // Recompensa por estar cerca (cuanto más cerca, más puntos)
+        if (distanciaActual < 5f) AddReward(0.001f); 
+        
+        // Pequeño castigo por cada segundo que pasa (para que se den prisa)
+        AddReward(-0.0005f);
     }
 
     // 5. Control manual
@@ -123,11 +135,10 @@ public class EnemyAI : Agent
     }
     private void OnCollisionStay2D(Collision2D collision)
     {
-        // IMPORTANTE: Asegúrate de que en Unity tus muros y mesas tienen el Tag "Pared" (o cámbialo aquí)
         if (collision.transform.CompareTag("Pared")) 
         {
-            // Les quitamos una pizca de puntos repetidamente para que les "duela" quedarse ahí
-            AddReward(-0.005f); 
+            // Castigo más fuerte por chocar (para que aprendan a girar)
+            AddReward(-0.01f); 
         }
     }
 

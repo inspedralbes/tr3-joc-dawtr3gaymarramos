@@ -16,8 +16,9 @@ public class GameManager : MonoBehaviour
     public Transform spawnP1;
     public Transform spawnP2;
 
-    [Header("UI Reloj")]
     public TextMeshProUGUI relojText;
+    public UnityEngine.Rendering.Universal.Light2D luzGlobal; // Referencia a la luz 2D de URP
+    public TextMeshProUGUI victoriaExtraText; // Texto de "Has guanyat!"
 
     private float tiempoSobrevivido = 0f;
     private bool partidaActiva = true;
@@ -128,8 +129,27 @@ public class GameManager : MonoBehaviour
     {
         partidaActiva = false;
         relojText.text = "06:00 AM";
+
+        // 1. Encender la luz global
+        if (luzGlobal != null) luzGlobal.intensity = 1f;
+
+        // 2. Mostrar "Has guanyat!"
+        if (victoriaExtraText != null) 
+        {
+            victoriaExtraText.text = "HAS GUANYAT!";
+            victoriaExtraText.gameObject.SetActive(true);
+        }
+
+        // 3. Detener a todos los animatrónicos
+        EnemyAI[] enemigos = FindObjectsOfType<EnemyAI>();
+        foreach (var e in enemigos) 
+        {
+            e.enabled = false; // Desactivamos el script de IA
+            Rigidbody2D rb = e.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.linearVelocity = Vector2.zero; // Frenazo en seco
+        }
         
-        // Llamamos al UIManager para que muestre la victoria
+        // Llamamos al UIManager para que muestre la victoria (el panel de las 06:00 AM)
         if (UIManager.Instance != null) UIManager.Instance.MostrarVictoria(); 
         
         // Enviamos datos a la BD

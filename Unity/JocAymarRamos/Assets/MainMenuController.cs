@@ -14,7 +14,6 @@ public class MainMenuController : MonoBehaviour
         Button btnNouJoc = root.Q<Button>("BtnNewGame");
         Button btnCrearSala = root.Q<Button>("BtnCreateRoom");
         Button btnUnirSala = root.Q<Button>("BtnJoinRoom");
-        Button btnStats = root.Q<Button>("BtnStats");
         Button btnSortir = root.Q<Button>("BtnQuit");
 
         // 3. Programem les funcions per a cada botó
@@ -38,9 +37,7 @@ public class MainMenuController : MonoBehaviour
             btnUnirSala.clicked += () => Debug.Log("Has polsat: Unir-se a Sala");
         }
 
-        if (btnStats != null) {
-            btnStats.clicked += () => Debug.Log("Consultant Estadístiques de " + NetworkManager.PlayerUsername);
-        }
+
 
         // Sortir del joc
         if (btnSortir != null) {
