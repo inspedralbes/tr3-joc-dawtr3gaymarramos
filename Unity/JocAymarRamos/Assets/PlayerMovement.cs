@@ -39,26 +39,18 @@ public class PlayerMovement : MonoBehaviour
         {
             targetPos = transform.position;
             
-            // Usamos GetValue<T>(0) porque los datos vienen dentro de un array [ { ... } ]
             SocketHandler.socket.OnUnityThread("playerMoved", (response) => {
                 try {
                     var data = response.GetValue<PlayerMovedResponse>(0);
                     if (data == null || data.pos == null) return;
 
-                    // Filtramos para no movernos a nosotros mismos
-                    // Si el mensaje dice isHost=true y yo soy el Host Remoto (represento al host), actualizo.
-                    // Si el mensaje dice isHost=false y yo soy el Invitado Remoto, actualizo.
+                    // Aplicamos movimiento solo si el mensaje coincide con nuestro rol remoto
                     if (data.isHost == this.isHostCharacter) 
                     {
                         targetPos = new Vector2(data.pos.x, data.pos.y);
                     }
-
-                } catch (System.Exception e) {
-                    Debug.LogError("Error en playerMoved: " + e.Message);
-                }
+                } catch { /* Ignoramos errores menores de parsing */ }
             });
-            
-            Debug.Log($"[RED] Jugador {(isHost ? "Host" : "Invitado")} remoto escuchando.");
         }
     }
 
@@ -68,6 +60,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (!esLocal)
         {
+            // Movimiento suave para el compañero
             transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 10f);
             
             Vector2 dir = targetPos - (Vector2)transform.position;

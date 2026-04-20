@@ -19,13 +19,8 @@ public class SocketHandler : MonoBehaviour
             var uri = new Uri(serverUrl);
             socket = new SocketIOUnity(uri);
 
-            // --- DEBUG GLOBAL (Cambiado a OnAny para compatibilidad) ---
-            socket.OnAny((eventName, response) => {
-                Debug.Log($"[SOCKET_RAWDAT] Evento: {eventName} | Data: {response.ToString()}");
-            });
-
             socket.Connect();
-            Debug.Log("🔌 Intentant connectar al Socket...");
+            Debug.Log("🔌 Conectat al servidor de WebSockets.");
         }
         else
         {

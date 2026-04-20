@@ -39,14 +39,14 @@ const io = require('socket.io')(http, {
 
 // Lógica de comunicación multijugador
 io.on('connection', (socket) => {
-    console.log('🎮 Jugador conectado:', socket.id);
+    console.log('Jugador conectado:', socket.id);
 
     // Evento para entrar en la sala de espera (Lobby)
     socket.on('joinRoom', async (data) => {
         const { roomCode, username } = data;
         socket.join(roomCode);
         
-        console.log(`👤 ${username} se ha unido a la sala: ${roomCode}`);
+        console.log(`Usuario ${username} se ha unido a la sala: ${roomCode}`);
 
         socket.username = username;
         socket.room = roomCode;
@@ -80,7 +80,7 @@ io.on('connection', (socket) => {
                 isHost: data.isHost
             };
             
-            // Reenviamos a los OTROS jugadores de la sala (más eficiente)
+            // Reenviamos a los otros jugadores
             socket.to(room).emit('playerMoved', payload);
         }
     });
@@ -99,12 +99,12 @@ io.on('connection', (socket) => {
         if(socket.room) {
             io.in(socket.room).emit('playerLeft', { username: socket.username });
         }
-        console.log('Jugador desconectat');
+        console.log('Jugador desconectado');
     });
 });
 
 // 8. Arrancar el servidor
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Servidor escoltant el port ${PORT}`);
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
