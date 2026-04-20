@@ -15,10 +15,16 @@ public class SocketHandler : MonoBehaviour
         // Evitamos que se destruya al cambiar de escena
         if (socket == null)
         {
+            Application.runInBackground = true; // <-- Evita que el juego se congele si cambias de ventana
+            DontDestroyOnLoad(this.gameObject);
             var uri = new Uri(serverUrl);
             socket = new SocketIOUnity(uri);
             socket.Connect();
             Debug.Log("🔌 Intentant connectar al Socket...");
+        }
+        else
+        {
+            Destroy(this.gameObject);
         }
     }
 }

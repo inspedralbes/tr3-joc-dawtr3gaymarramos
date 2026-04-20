@@ -41,9 +41,8 @@ public class LobbyManager : MonoBehaviour
 
     public void ClickCrear()
     {
-        string userId = PlayerPrefs.GetString("UserId", "65f1a2b3c4d5e6f7a8b9c0d1"); 
-        PlayerPrefs.SetInt("esHost", 1);
-        PlayerPrefs.Save();
+        string userId = string.IsNullOrEmpty(NetworkManager.PlayerID) ? "65f1a2b3c4d5e6f7a8b9c0d1" : NetworkManager.PlayerID; 
+        NetworkManager.esHost = true;
         Debug.Log("Botó CREAR polsat. ID: " + userId);
         StartCoroutine(EnviarPeticion("create", "{\"hostId\":\"" + userId + "\"}"));
     }
@@ -51,11 +50,10 @@ public class LobbyManager : MonoBehaviour
     public void ClickUnirse()
     {
         var txtField = root.Q<TextField>("TxtRoomCode");
-        string codigo = (txtField != null) ? txtField.value.ToUpper() : "";
-        string userId = PlayerPrefs.GetString("UserId", "65f1a2b3c4d5e6f7a8b9c0d1");
+        string codigo = (txtField != null) ? txtField.value.Trim().ToUpper() : "";
+        string userId = string.IsNullOrEmpty(NetworkManager.PlayerID) ? "65f1a2b3c4d5e6f7a8b9c0d1" : NetworkManager.PlayerID;
         
-        PlayerPrefs.SetInt("esHost", 0);
-        PlayerPrefs.Save();
+        NetworkManager.esHost = false;
 
         Debug.Log("Botó UNIR-SE polsat. Codi: " + codigo);
         StartCoroutine(EnviarPeticion("join", "{\"roomCode\":\"" + codigo + "\", \"userId\":\"" + userId + "\"}"));
@@ -86,8 +84,7 @@ public class LobbyManager : MonoBehaviour
                 string codi = respuesta.Substring(inicio, 6);
                 
                 // GUARDAMOS EL CÓDIGO EN LA MEMORIA
-                PlayerPrefs.SetString("CodiSalaActual", codi);
-                PlayerPrefs.Save();
+                NetworkManager.CodiSalaActual = codi;
                 Debug.Log("Codi guardat per a la Lobby: " + codi);
             }
 

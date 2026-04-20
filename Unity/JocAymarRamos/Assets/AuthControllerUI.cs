@@ -33,8 +33,7 @@ public class AuthControllerUI : MonoBehaviour
                 Debug.Log("Intentant entrar amb: " + _userField.value);
                 
                 // === AQUÍ GUARDAMOS EL NOMBRE ===
-                PlayerPrefs.SetString("Username", _userField.value);
-                PlayerPrefs.Save(); // Forzamos el guardado en disco
+                NetworkManager.PlayerUsername = _userField.value;
                 
                 // Llamamos a la red
                 networkManager.Login(_userField.value, _passField.value); 

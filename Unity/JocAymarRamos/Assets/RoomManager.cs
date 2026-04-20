@@ -16,7 +16,7 @@ public class RoomManager : MonoBehaviour
         btnComencar = root.Q<Button>("BtnStart");
 
         // Recuperamos el código que guardamos en el LobbyManager
-        string codi = PlayerPrefs.GetString("CurrentRoom", "0000");
+        string codi = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "0000" : NetworkManager.CodiSalaActual;
         lblCodigo.text = "CODI SALA: " + codi;
 
         // Aquí es donde conectarías el Socket.io para escuchar quién entra

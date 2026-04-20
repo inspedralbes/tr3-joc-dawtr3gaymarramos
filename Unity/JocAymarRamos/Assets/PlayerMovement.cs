@@ -24,18 +24,23 @@ public class PlayerMovement : MonoBehaviour
     [System.Serializable]
     class PlayerMovedResponse { public string id; public Vector2Data pos; public string username; public bool isHost; }
 
-    void Start()
+    public void Initialize(bool local, bool isHost)
     {
+        this.esLocal = local;
+        this.isHostCharacter = isHost;
+
         if (!esLocal && SocketHandler.socket != null)
         {
             targetPos = transform.position;
+            
+            // Limpiamos suscripciones antiguas para evitar duplicados
+            SocketHandler.socket.Off("playerMoved");
+            
             SocketHandler.socket.OnUnityThread("playerMoved", (response) => {
-                Debug.Log("<<< RECIBIDO evento 'playerMoved' del servidor");
                 try {
-                    string json = response.ToString();
-                    Debug.Log("JSON recibido: " + json);
-                    
                     var data = response.GetValue<PlayerMovedResponse>();
+                    
+                    // Solo actualizamos si el mensaje corresponde a este personaje (Host vs Invitado)
                     if (data.isHost == this.isHostCharacter) 
                     {
                         targetPos = new Vector2(data.pos.x, data.pos.y);
@@ -44,7 +49,18 @@ public class PlayerMovement : MonoBehaviour
                     Debug.LogError("Error al procesar playerMoved: " + e.Message);
                 }
             });
+            
+            Debug.Log($"[RED] Jugador {(isHost ? "Host" : "Invitado")} remoto inicializado y escuchando.");
         }
+        else if (esLocal)
+        {
+            Debug.Log($"[RED] Jugador {(isHost ? "Host" : "Invitado")} local inicializado.");
+        }
+    }
+
+    void Start()
+    {
+        // El Start se queda vacío o para inicializaciones básicas no dependientes de red
     }
 
     void Update()
@@ -104,13 +120,15 @@ public class PlayerMovement : MonoBehaviour
             syncTimer = 0f;
             if (SocketHandler.socket != null)
             {
-                string miSala = PlayerPrefs.GetString("CodiSalaActual", "SENSE_SALA");
-                var data = new MoveEmitData { 
+                string miSala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SENSE_SALA" : NetworkManager.CodiSalaActual;
+                
+                // Usamos un objeto anónimo para asegurar que se serializa igual que el joinRoom
+                var data = new { 
                     room = miSala, 
-                    pos = new Vector2Data { x = rb.position.x, y = rb.position.y },
+                    pos = new { x = rb.position.x, y = rb.position.y },
                     isHost = this.isHostCharacter
                 };
-                Debug.Log(">>> ENVIANDO move a la sala: " + miSala);
+
                 SocketHandler.socket.Emit("move", data);
             }
         }

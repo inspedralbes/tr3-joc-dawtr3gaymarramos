@@ -28,7 +28,7 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this; 
         
         // Cargar automáticamente si es multijugador (1 = Sala, 0 = Solitario)
-        esMultijugador = PlayerPrefs.GetInt("esMultijugador", 0) == 1;
+        esMultijugador = NetworkManager.esMultijugador;
     }
 
     void Start()
@@ -49,23 +49,20 @@ public class GameManager : MonoBehaviour
                 PlayerMovement mov1 = p1.GetComponent<PlayerMovement>();
                 PlayerMovement mov2 = p2.GetComponent<PlayerMovement>();
 
-                if (mov1 != null) mov1.isHostCharacter = true;
-                if (mov2 != null) mov2.isHostCharacter = false;
-
-                bool soyHost = PlayerPrefs.GetInt("esHost", 1) == 1;
+                bool soyHost = NetworkManager.esHost;
 
                 if (soyHost)
                 {
-                    if (mov1 != null) mov1.esLocal = true;
-                    if (mov2 != null) mov2.esLocal = false;
+                    if (mov1 != null) mov1.Initialize(true, true);  // P1 es local y es el Host
+                    if (mov2 != null) mov2.Initialize(false, false); // P2 es remoto y es el Invitado
                     
                     CameraFollow cam = FindObjectOfType<CameraFollow>();
                     if (cam != null) cam.target = p1.transform;
                 }
                 else
                 {
-                    if (mov1 != null) mov1.esLocal = false;
-                    if (mov2 != null) mov2.esLocal = true;
+                    if (mov1 != null) mov1.Initialize(false, true); // P1 es remoto y es el Host
+                    if (mov2 != null) mov2.Initialize(true, false); // P2 es local y es el Invitado
                     
                     CameraFollow cam = FindObjectOfType<CameraFollow>();
                     if (cam != null) cam.target = p2.transform;

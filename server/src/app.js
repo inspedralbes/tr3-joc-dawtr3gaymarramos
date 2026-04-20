@@ -78,13 +78,19 @@ io.on('connection', (socket) => {
 
     // Sincronización de movimiento durante la partida
     socket.on('move', (data) => {
-        // Enviamos a todos los de la sala menos al que emite
-        socket.to(data.room).emit('playerMoved', { 
-            id: socket.id, 
-            pos: data.pos,
-            username: socket.username,
-            isHost: data.isHost
-        });
+        const room = data.room || socket.room; // Usar la sala enviada o la guardada al entrar
+        
+        if (room) {
+            // Enviamos a todos los de la sala menos al que emite
+            socket.to(room).emit('playerMoved', { 
+                id: socket.id, 
+                pos: data.pos,
+                username: socket.username,
+                isHost: data.isHost
+            });
+        } else {
+            console.warn(`⚠️ Intento de movimiento de ${socket.username} sin sala asignada.`);
+        }
     });
 
     // Evento para cuando el Host le da a "Comenzar Partida"

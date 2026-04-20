@@ -23,7 +23,7 @@ public class LobbyScreen : MonoBehaviour
         btnReady = root.Q<Button>("BtnReady");
 
         // 1. Mostrar código de sala
-        string code = PlayerPrefs.GetString("CodiSalaActual", "ERROR");
+        string code = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "ERROR" : NetworkManager.CodiSalaActual;
         if (lblCodi != null) lblCodi.text = "CODI: " + code;
 
         // 2. El nombre del Host se actualizará con el evento de Sockets
@@ -37,7 +37,7 @@ public class LobbyScreen : MonoBehaviour
         }
 
         // 4. Configurar botones COMENÇAR y ESTIC LLEST
-        bool soyHost = PlayerPrefs.GetInt("esHost", 1) == 1;
+        bool soyHost = NetworkManager.esHost;
         
         if (soyHost) {
             // El Host ve Empezar (deshabilitado al inicio) y no ve Ready
@@ -46,8 +46,7 @@ public class LobbyScreen : MonoBehaviour
                 btnStart.SetEnabled(false); // Esperando al compañero
                 btnStart.clicked += () => {
                     if (SocketHandler.socket != null) SocketHandler.socket.Emit("startGame", code);
-                    PlayerPrefs.SetInt("esMultijugador", 1);
-                    PlayerPrefs.Save();
+                    NetworkManager.esMultijugador = true;
                     SceneManager.LoadScene("Joc"); 
                 };
             }
@@ -69,10 +68,10 @@ public class LobbyScreen : MonoBehaviour
         if (SocketHandler.socket != null) {
             
             // --- NUEVO: Escuchar el inicio de la partida para el Cliente ---
+            SocketHandler.socket.Off("onGameStarted");
             SocketHandler.socket.OnUnityThread("onGameStarted", (response) => {
                 Debug.Log("¡El Host ha iniciado la partida!");
-                PlayerPrefs.SetInt("esMultijugador", 1);
-                PlayerPrefs.Save();
+                NetworkManager.esMultijugador = true;
                 SceneManager.LoadScene("Joc");
             });
 
@@ -102,8 +101,19 @@ public class LobbyScreen : MonoBehaviour
                 }
             });
 
-            var data = new { roomCode = code, username = PlayerPrefs.GetString("Username") };
+            string username = string.IsNullOrEmpty(NetworkManager.PlayerUsername) ? "Invitado" : NetworkManager.PlayerUsername;
+            var data = new { roomCode = code, username = username };
             SocketHandler.socket.Emit("joinRoom", data);
+        }
+    }
+
+    void OnDisable()
+    {
+        if (SocketHandler.socket != null)
+        {
+            SocketHandler.socket.Off("onGameStarted");
+            SocketHandler.socket.Off("opponentReady");
+            SocketHandler.socket.Off("roomUpdated");
         }
     }
 

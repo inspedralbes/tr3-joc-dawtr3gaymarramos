@@ -22,8 +22,7 @@ public class MainMenuController : MonoBehaviour
         if (btnNouJoc != null) {
             btnNouJoc.clicked += () => {
                 Debug.Log("Intentant carregar escena individual...");
-                PlayerPrefs.SetInt("esMultijugador", 0);
-                PlayerPrefs.Save();
+                NetworkManager.esMultijugador = false;
                 SceneManager.LoadScene(2); 
             };
         }

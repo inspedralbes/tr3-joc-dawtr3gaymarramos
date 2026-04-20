@@ -42,6 +42,11 @@ public class NetworkManager : MonoBehaviour
     public static string PlayerID;
     public static string PlayerUsername;
 
+    // --- NUEVAS VARIABLES ESTÁTICAS PARA SUSTITUIR PlayerPrefs ---
+    public static bool esHost = false;
+    public static bool esMultijugador = false;
+    public static string CodiSalaActual = "";
+
     void Awake()
     {
         // Para que el objeto no se destruya al cambiar de escena
