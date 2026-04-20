@@ -73,16 +73,18 @@ io.on('connection', (socket) => {
         const room = data.room || socket.room;
         
         if (room) {
-            // LOG DE DEBUG PARA VER SI LLEGAN DATOS
-            console.log(`📍 Movimiento de ${socket.username} en ${room}:`, data.pos);
-
-            // Enviamos a todos los de la sala menos al que emite
-            socket.to(room).emit('playerMoved', { 
+            const payload = { 
                 id: socket.id, 
                 pos: data.pos,
                 username: socket.username,
                 isHost: data.isHost
-            });
+            };
+            // LOG DE DEBUG EN EL SERVIDOR
+            console.log(`📡 Movimiento en ${room} de ${socket.username}. Reenviando a TODOS.`);
+
+            // Usamos io.in(room) para que llegue a TODOS (incluido el que lo envía)
+            // Esto es para probar si el mensaje vuelve a Unity correctamente
+            io.in(room).emit('playerMoved', payload);
         } else {
             console.warn(`⚠️ Intento de movimiento de ${socket.username} sin sala asignada.`);
         }

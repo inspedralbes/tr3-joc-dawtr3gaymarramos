@@ -39,14 +39,12 @@ public class PlayerMovement : MonoBehaviour
                     
                     if (data == null || data.pos == null) return;
 
-                    // DEBUG: Para ver si llegan mensajes de red
-                    Debug.Log($"[RED] Recibido mov de {(data.isHost ? "Host" : "Invitado")} ({data.username}) a pos: {data.pos.x}, {data.pos.y}");
+                    // DEBUG AGRESIVO: Aceptar todo para ver si se mueve
+                    Debug.Log($"[RED] ¡MENSAJE RECIBIDO! De: {data.username} (HostInMsg: {data.isHost}) - Mi isHostChar: {this.isHostCharacter}");
+                    
+                    // De momento aplicamos siempre para testear
+                    targetPos = new Vector2(data.pos.x, data.pos.y);
 
-                    // Solo actualizamos si el mensaje corresponde a este personaje (Host vs Invitado)
-                    if (data.isHost == this.isHostCharacter) 
-                    {
-                        targetPos = new Vector2(data.pos.x, data.pos.y);
-                    }
                 } catch (System.Exception e) {
                     Debug.LogError("Error al procesar playerMoved: " + e.Message + " | Raw: " + response.ToString());
                 }
