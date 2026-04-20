@@ -1,20 +1,29 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 [System.Serializable]
-public class Vector2Data { public float x; public float y; }
+public class Vector2Data 
+{ 
+    public float x { get; set; } 
+    public float y { get; set; } 
+}
 
 [System.Serializable]
-public class PlayerMovedResponse { public string id; public Vector2Data pos; public string username; public bool isHost; }
+public class PlayerMovedResponse 
+{ 
+    public string id { get; set; } 
+    public Vector2Data pos { get; set; } 
+    public string username { get; set; } 
+    public bool isHost { get; set; } 
+}
 
 public class PlayerMovement : MonoBehaviour
 {
-    public bool esLocal = true; // Si es true, obedece al teclado. Si es false, es el compañero.
-    public bool isHostCharacter = true; // Para diferenciar los IDs de red (Host vs Join)
-    public float moveSpeed = 4f; // Velocidad ajustada
+    public bool esLocal = true;
+    public bool isHostCharacter = true;
+    public float moveSpeed = 4f;
     public Rigidbody2D rb;
     public Animator animator;
-    
-    // Aquí le decimos al código que existe una linterna
     public GameObject linterna; 
 
     Vector2 movement;
@@ -30,47 +39,37 @@ public class PlayerMovement : MonoBehaviour
         {
             targetPos = transform.position;
             
-            // Limpiamos suscripciones antiguas para evitar duplicados
-            SocketHandler.socket.Off("playerMoved");
-            
+            // Usamos GetValue<T>(0) porque los datos vienen dentro de un array [ { ... } ]
             SocketHandler.socket.OnUnityThread("playerMoved", (response) => {
                 try {
-                    var data = response.GetValue<PlayerMovedResponse>();
-                    
+                    var data = response.GetValue<PlayerMovedResponse>(0);
                     if (data == null || data.pos == null) return;
 
-                    // DEBUG AGRESIVO: Aceptar todo para ver si se mueve
-                    Debug.Log($"[RED] ¡MENSAJE RECIBIDO! De: {data.username} (HostInMsg: {data.isHost}) - Mi isHostChar: {this.isHostCharacter}");
-                    
-                    // De momento aplicamos siempre para testear
-                    targetPos = new Vector2(data.pos.x, data.pos.y);
+                    // Filtramos para no movernos a nosotros mismos
+                    // Si el mensaje dice isHost=true y yo soy el Host Remoto (represento al host), actualizo.
+                    // Si el mensaje dice isHost=false y yo soy el Invitado Remoto, actualizo.
+                    if (data.isHost == this.isHostCharacter) 
+                    {
+                        targetPos = new Vector2(data.pos.x, data.pos.y);
+                    }
 
                 } catch (System.Exception e) {
-                    Debug.LogError("Error al procesar playerMoved: " + e.Message + " | Raw: " + response.ToString());
+                    Debug.LogError("Error en playerMoved: " + e.Message);
                 }
             });
             
-            Debug.Log($"[RED] Jugador {(isHost ? "Host" : "Invitado")} remoto inicializado y escuchando.");
-        }
-        else if (esLocal)
-        {
-            Debug.Log($"[RED] Jugador {(isHost ? "Host" : "Invitado")} local inicializado.");
+            Debug.Log($"[RED] Jugador {(isHost ? "Host" : "Invitado")} remoto escuchando.");
         }
     }
 
-    void Start()
-    {
-        // El Start se queda vacío o para inicializaciones básicas no dependientes de red
-    }
+    void Start() { }
 
     void Update()
     {
         if (!esLocal)
         {
-            // Interpolar la posición del compañero para que se mueva suave
             transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 10f);
             
-            // Animar compañero
             Vector2 dir = targetPos - (Vector2)transform.position;
             if (dir.magnitude > 0.05f)
             {
@@ -97,9 +96,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetFloat("Vertical", movement.y);
             animator.SetFloat("Speed", movement.sqrMagnitude);
 
-            // ¡La magia de la rotación!
             float angle = Mathf.Atan2(movement.y, movement.x) * Mathf.Rad2Deg;
-            // Le restamos 90 grados para que el cono apunte hacia adelante y no de lado
             linterna.transform.rotation = Quaternion.Euler(0, 0, angle - 90f); 
         }
         else
@@ -110,19 +107,17 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!esLocal) return; // El movimiento físico solo lo hace el local
+        if (!esLocal) return;
         rb.MovePosition(rb.position + movement.normalized * moveSpeed * Time.fixedDeltaTime);
 
-        // Emitir nuestra posición al servidor 10 veces por segundo
         syncTimer += Time.fixedDeltaTime;
-        if (syncTimer >= 0.1f) // Cada 0.1 segundos (10 Hz)
+        if (syncTimer >= 0.1f)
         {
             syncTimer = 0f;
             if (SocketHandler.socket != null)
             {
                 string miSala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SENSE_SALA" : NetworkManager.CodiSalaActual;
                 
-                // Usamos un objeto anónimo para asegurar que se serializa igual que el joinRoom
                 var data = new { 
                     room = miSala, 
                     pos = new { x = rb.position.x, y = rb.position.y },

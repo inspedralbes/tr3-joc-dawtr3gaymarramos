@@ -1,7 +1,6 @@
 using UnityEngine;
-using SocketIOClient; // La librería que acabas de bajar
+using SocketIOClient;
 using System;
-using Newtonsoft.Json; // Unity suele traerlo, si no, usa JsonUtility
 
 public class SocketHandler : MonoBehaviour
 {
@@ -19,6 +18,12 @@ public class SocketHandler : MonoBehaviour
             DontDestroyOnLoad(this.gameObject);
             var uri = new Uri(serverUrl);
             socket = new SocketIOUnity(uri);
+
+            // --- DEBUG GLOBAL (Cambiado a OnAny para compatibilidad) ---
+            socket.OnAny((eventName, response) => {
+                Debug.Log($"[SOCKET_RAWDAT] Evento: {eventName} | Data: {response.ToString()}");
+            });
+
             socket.Connect();
             Debug.Log("🔌 Intentant connectar al Socket...");
         }
