@@ -1,5 +1,11 @@
 using UnityEngine;
 
+[System.Serializable]
+public class Vector2Data { public float x; public float y; }
+
+[System.Serializable]
+public class PlayerMovedResponse { public string id; public Vector2Data pos; public string username; public bool isHost; }
+
 public class PlayerMovement : MonoBehaviour
 {
     public bool esLocal = true; // Si es true, obedece al teclado. Si es false, es el compañero.
@@ -14,15 +20,6 @@ public class PlayerMovement : MonoBehaviour
     Vector2 movement;
     private Vector2 targetPos;
     private float syncTimer = 0f;
-
-    [System.Serializable]
-    class Vector2Data { public float x; public float y; }
-
-    [System.Serializable]
-    class MoveEmitData { public string room; public Vector2Data pos; public bool isHost; }
-
-    [System.Serializable]
-    class PlayerMovedResponse { public string id; public Vector2Data pos; public string username; public bool isHost; }
 
     public void Initialize(bool local, bool isHost)
     {
@@ -40,13 +37,18 @@ public class PlayerMovement : MonoBehaviour
                 try {
                     var data = response.GetValue<PlayerMovedResponse>();
                     
+                    if (data == null || data.pos == null) return;
+
+                    // DEBUG: Para ver si llegan mensajes de red
+                    Debug.Log($"[RED] Recibido mov de {(data.isHost ? "Host" : "Invitado")} ({data.username}) a pos: {data.pos.x}, {data.pos.y}");
+
                     // Solo actualizamos si el mensaje corresponde a este personaje (Host vs Invitado)
                     if (data.isHost == this.isHostCharacter) 
                     {
                         targetPos = new Vector2(data.pos.x, data.pos.y);
                     }
                 } catch (System.Exception e) {
-                    Debug.LogError("Error al procesar playerMoved: " + e.Message);
+                    Debug.LogError("Error al procesar playerMoved: " + e.Message + " | Raw: " + response.ToString());
                 }
             });
             

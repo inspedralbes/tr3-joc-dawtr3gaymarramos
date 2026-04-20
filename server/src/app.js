@@ -20,7 +20,6 @@ app.use(cors()); // Permet connexions externes (Unity)
 app.use(express.json()); // Permet llegir JSON al body de les peticions
 
 // 6. Definició de Rutes de l'API
-// Esto le dice al servidor: "Cualquier cosa que venga con /api/users, mándala al archivo de rutas"
 app.use('/api/users', userRoutes);
 app.use('/api/games', gameRoutes);
 
@@ -28,9 +27,6 @@ app.use('/api/games', gameRoutes);
 app.get('/api/status', (req, res) => {
     res.json({ status: 'ok', message: 'Servidor del joc funcionant correctament' });
 });
-// ... (tus pasos 1 al 6 se quedan igual)
-
-// ... (Tus pasos 1 al 6 se quedan exactamente igual)
 
 // 7. Configuración de WebSockets (Socket.io)
 const http = require('http').Server(app);
@@ -41,7 +37,7 @@ const io = require('socket.io')(http, {
     }
 });
 
-// Lógica de comunicación multijugador (FUSIONADA Y LIMPIA)
+// Lógica de comunicación multijugador
 io.on('connection', (socket) => {
     console.log('🎮 Jugador conectado:', socket.id);
 
@@ -52,11 +48,9 @@ io.on('connection', (socket) => {
         
         console.log(`👤 ${username} se ha unido a la sala: ${roomCode}`);
 
-        // Guardamos el nombre en el socket para saber quién es al desconectar
         socket.username = username;
         socket.room = roomCode;
 
-        // Avisamos a TODOS en la sala (incluido el que entra) para actualizar la lista
         const roomSockets = await io.in(roomCode).fetchSockets();
         const numPlayers = roomSockets.length;
         
@@ -67,8 +61,6 @@ io.on('connection', (socket) => {
             }
         }
         
-        console.log(`[DEBUG] Room ${roomCode} has players:`, players);
-
         io.in(roomCode).emit('roomUpdated', {
             playersCount: numPlayers,
             lastJoined: username,
@@ -78,9 +70,12 @@ io.on('connection', (socket) => {
 
     // Sincronización de movimiento durante la partida
     socket.on('move', (data) => {
-        const room = data.room || socket.room; // Usar la sala enviada o la guardada al entrar
+        const room = data.room || socket.room;
         
         if (room) {
+            // LOG DE DEBUG PARA VER SI LLEGAN DATOS
+            console.log(`📍 Movimiento de ${socket.username} en ${room}:`, data.pos);
+
             // Enviamos a todos los de la sala menos al que emite
             socket.to(room).emit('playerMoved', { 
                 id: socket.id, 
@@ -100,7 +95,6 @@ io.on('connection', (socket) => {
 
     // Evento para cuando el Cliente confirma que está listo
     socket.on('playerReady', (roomCode) => {
-        // Le avisamos a los demás de la sala (al Host) que el jugador está listo
         socket.to(roomCode).emit('opponentReady');
     });
 
