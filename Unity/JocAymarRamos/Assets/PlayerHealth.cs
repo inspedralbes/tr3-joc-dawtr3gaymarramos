@@ -1,6 +1,12 @@
 using UnityEngine;
 using TMPro;
 
+[System.Serializable]
+public class PlayerStateData {
+    public string room;
+    public bool isHost;
+}
+
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Configuración de Vida")]
@@ -40,6 +46,25 @@ public class PlayerHealth : MonoBehaviour
         }
 
         ActualizarTexto();
+
+        // --- NUEVA LÓGICA DE RED ---
+        if (GameManager.Instance != null && GameManager.Instance.esMultijugador)
+        {
+            PlayerMovement mov = GetComponent<PlayerMovement>();
+            if (mov != null && !mov.esLocal)
+            {
+                // Si este objeto representa al otro jugador, escuchamos sus cambios de estado
+                SocketHandler.socket.OnUnityThread("onPlayerDowned", (response) => {
+                    var data = response.GetValue<PlayerStateData>(0);
+                    if (data.isHost == mov.isHostCharacter) SyncCaerAbatido();
+                });
+
+                SocketHandler.socket.OnUnityThread("onPlayerRevived", (response) => {
+                    var data = response.GetValue<PlayerStateData>(0);
+                    if (data.isHost == mov.isHostCharacter) SyncRevivir();
+                });
+            }
+        }
     }
 
     void Update()
@@ -109,37 +134,71 @@ public class PlayerHealth : MonoBehaviour
 
     void CaerAbatido()
     {
+        if (estaAbatido) return;
         estaAbatido = true;
         
         if (animator != null) animator.SetBool("EstaMuerto", true);
         
-        // Bloquear movimiento automáticamente buscando el script
         PlayerMovement mov = GetComponent<PlayerMovement>();
         if (mov != null) mov.enabled = false;
 
-        // ESTO ES LO IMPORTANTE: Avisamos al GameManager de que hemos caído
+        // Emitir a la red si somos el jugador local
+        if (mov != null && mov.esLocal && SocketHandler.socket != null)
+        {
+            string miSala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SENSE_SALA" : NetworkManager.CodiSalaActual;
+            SocketHandler.socket.Emit("playerDowned", new PlayerStateData { room = miSala, isHost = mov.isHostCharacter });
+        }
+
         if (GameManager.Instance != null) 
         {
             GameManager.Instance.ComprobarEstadoPartida();
         }
     }
+
+    // Función para sincronizar sin re-emitir
+    private void SyncCaerAbatido()
+    {
+        estaAbatido = true;
+        if (animator != null) animator.SetBool("EstaMuerto", true);
+        PlayerMovement mov = GetComponent<PlayerMovement>();
+        if (mov != null) mov.enabled = false;
+        
+        if (GameManager.Instance != null) GameManager.Instance.ComprobarEstadoPartida();
+    }
     
     void Revivir()
+    {
+        if (!estaAbatido) return;
+        estaAbatido = false;
+        siendoRevivido = false;
+        temporizadorRevivir = 0f;
+        currentHealth = 1; 
+        ActualizarTexto();
+
+        if (animator != null) animator.SetBool("EstaMuerto", false);
+
+        PlayerMovement mov = GetComponent<PlayerMovement>();
+        if (mov != null) mov.enabled = true;
+
+        // Emitir a la red si somos el jugador local
+        if (mov != null && mov.esLocal && SocketHandler.socket != null)
+        {
+            string miSala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SENSE_SALA" : NetworkManager.CodiSalaActual;
+            SocketHandler.socket.Emit("playerRevived", new PlayerStateData { room = miSala, isHost = mov.isHostCharacter });
+        }
+
+        Debug.Log("¡JUGADOR REVIVIDO!");
+    }
+
+    private void SyncRevivir()
     {
         estaAbatido = false;
         siendoRevivido = false;
         temporizadorRevivir = 0f;
-        currentHealth = 1; // Se levanta con 1 sola vida
-        ActualizarTexto();
-
-        // ¡ESTO QUITA LA ANIMACIÓN DE LLORAR Y TE PONE DE PIE!
+        currentHealth = 1;
         if (animator != null) animator.SetBool("EstaMuerto", false);
-
-        // Desbloquear movimiento
         PlayerMovement mov = GetComponent<PlayerMovement>();
         if (mov != null) mov.enabled = true;
-
-        Debug.Log("¡JUGADOR REVIVIDO!");
     }
 
     // --- NOTA: La detección por Triggers/Colisiones ha sido sustituida por el chequeo de distancia en Update() ---

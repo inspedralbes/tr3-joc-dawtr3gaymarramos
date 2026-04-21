@@ -3,6 +3,13 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 
+[System.Serializable]
+public class EnemyMoveData {
+    public string room;
+    public string enemyName;
+    public Vector2 pos;
+}
+
 public class EnemyAI : Agent
 {
     [Header("Objetivos y Movimiento")]
@@ -16,13 +23,30 @@ public class EnemyAI : Agent
     private Animator anim;
     private Vector3 initialPosition; // Para resetear al inicio del episodio
 
+    // --- NUEVAS VARIABLES DE RED ---
+    private Vector2 targetPos;
+    private float syncTimer = 0f;
+
     // 1. Inicialización
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        initialPosition = transform.position; // Guardamos dónde empieza
+        initialPosition = transform.position; 
         objetivoActual = GetClosestPlayer(); 
+        targetPos = transform.position;
+
+        // Si somos el cliente, nos suscribimos a las actualizaciones del Host
+        if (NetworkManager.esMultijugador && !NetworkManager.esHost)
+        {
+            SocketHandler.socket.OnUnityThread("enemyUpdated", (response) => {
+                var data = response.GetValue<EnemyMoveData>(0);
+                if (data.enemyName == gameObject.name)
+                {
+                    targetPos = data.pos;
+                }
+            });
+        }
     }
 
     private Transform GetClosestPlayer()
@@ -89,6 +113,9 @@ public class EnemyAI : Agent
     // 4. Moverse y Animarse
     public override void OnActionReceived(ActionBuffers actions)
     {
+        // SI ES MULTIJUGADOR Y NO SOMOS EL HOST, NO HACEMOS NADA (el Host nos mueve)
+        if (NetworkManager.esMultijugador && !NetworkManager.esHost) return;
+
         if (objetivoActual == null) return;
 
         int action = actions.DiscreteActions[0];
@@ -145,6 +172,23 @@ public class EnemyAI : Agent
     // 7. LA MAGIA DE LA ANIMACIÓN Y EL CEREBRO
     private void Update()
     {
+        if (NetworkManager.esMultijugador && !NetworkManager.esHost)
+        {
+            // Lógica de CLIENTE: Seguir la posición del Host suavemente
+            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 10f);
+            
+            // Animación basada en el movimiento de red
+            Vector2 velocity = (Vector2)transform.position - (Vector2)targetPos; // Aproximación
+            if (velocity.magnitude > 0.01f)
+            {
+                anim.SetFloat("Horizontal", -velocity.normalized.x);
+                anim.SetFloat("Vertical", -velocity.normalized.y);
+            }
+            return;
+        }
+
+        // --- Lógica de HOST o SOLITARIO ---
+        
         // --- ¡NUEVO! CEREBRO DE PERSECUCIÓN DINÁMICO ---
         Transform targetMasCercano = GetClosestPlayer();
 
@@ -169,12 +213,25 @@ public class EnemyAI : Agent
         {
             if (rb.linearVelocity.magnitude > 0.1f)
             {
-                // .normalized convierte velocidades como (5, 0) o (-4, 3) 
-                // en valores limpios entre -1 y 1 exactos para el Blend Tree
                 Vector2 direccion = rb.linearVelocity.normalized;
-
                 anim.SetFloat("Horizontal", direccion.x);
                 anim.SetFloat("Vertical", direccion.y);
+            }
+        }
+
+        // --- ENVIAR POSICIÓN POR RED (Solo si somos el Host) ---
+        if (NetworkManager.esMultijugador && NetworkManager.esHost)
+        {
+            syncTimer += Time.deltaTime;
+            if (syncTimer >= 0.1f) // 10 veces por segundo
+            {
+                syncTimer = 0f;
+                string miSala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SENSE_SALA" : NetworkManager.CodiSalaActual;
+                SocketHandler.socket.Emit("enemyMove", new EnemyMoveData { 
+                    room = miSala, 
+                    enemyName = gameObject.name, 
+                    pos = transform.position 
+                });
             }
         }
     }

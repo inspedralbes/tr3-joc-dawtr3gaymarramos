@@ -85,6 +85,29 @@ io.on('connection', (socket) => {
         }
     });
 
+    // NUEVO: Sincronización de enemigos (solo el Host envía esto)
+    socket.on('enemyMove', (data) => {
+        const room = data.room || socket.room;
+        if (room) {
+            socket.to(room).emit('enemyUpdated', data);
+        }
+    });
+
+    // NUEVO: Sincronización de estado abatido
+    socket.on('playerDowned', (data) => {
+        const room = data.room || socket.room;
+        if (room) {
+            socket.to(room).emit('onPlayerDowned', data);
+        }
+    });
+
+    socket.on('playerRevived', (data) => {
+        const room = data.room || socket.room;
+        if (room) {
+            socket.to(room).emit('onPlayerRevived', data);
+        }
+    });
+
     // Evento para cuando el Host le da a "Comenzar Partida"
     socket.on('startGame', (roomCode) => {
         io.in(roomCode).emit('onGameStarted');

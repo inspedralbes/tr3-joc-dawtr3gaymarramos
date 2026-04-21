@@ -17,20 +17,35 @@ public class DoorManager : MonoBehaviour
         // CASO 1: Si entra el NIÑO
         if (other.CompareTag("Player"))
         {
-            // ¡NUEVO! Le decimos a la IA que esta es la puerta que debe seguir
-            ultimaPuertaCruzada = this.transform;
+            // Solo teletransportamos y cambiamos cámara si es el jugador LOCAL
+            PlayerMovement mov = other.GetComponent<PlayerMovement>();
+            bool esLocal = (mov != null) ? mov.esLocal : true; // Si no hay script, asumimos local (modo solitario)
 
-            // 1. Teletransportar al niño
-            other.transform.position = puntoDeDestino.position;
-
-            // 2. Actualizar cámara al instante
-            CameraFollow cam = Camera.main.GetComponent<CameraFollow>();
-            if (cam != null)
+            if (esLocal)
             {
-                cam.CambiarZona(minEnDestino, maxEnDestino, puntoDeDestino.position);
+                // ¡NUEVO! Le decimos a la IA que esta es la puerta que debe seguir
+                ultimaPuertaCruzada = this.transform;
+
+                // 1. Teletransportar al niño
+                other.transform.position = puntoDeDestino.position;
+
+                // 2. Actualizar cámara al instante
+                CameraFollow cam = Camera.main.GetComponent<CameraFollow>();
+                if (cam != null)
+                {
+                    cam.CambiarZona(minEnDestino, maxEnDestino, puntoDeDestino.position);
+                }
+                
+                Debug.Log("El jugador local ha cruzado la puerta.");
             }
-            
-            Debug.Log("El jugador ha cruzado la puerta.");
+            else
+            {
+                // Si es un jugador remoto, no tocamos la cámara. 
+                // El teletransporte físico lo hará su propio cliente y se sincronizará por posición,
+                // pero lo movemos también aquí para evitar "ghosting" a través de paredes.
+                other.transform.position = puntoDeDestino.position;
+                Debug.Log("Un jugador remoto ha cruzado la puerta.");
+            }
         }
 
         // CASO 2: Si entra un ENEMIGO (Pol, Toni o Álvaro)
