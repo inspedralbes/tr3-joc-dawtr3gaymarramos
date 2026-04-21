@@ -51,3 +51,20 @@ S'han modificat els següents fitxers segons el `plan.md`:
 * Per solucionar el moviment en caure abatut, s'ha detectat que la variable `scriptMovimiento` podia quedar buida a l'Inspector de Unity. La IA ha modificat `PlayerHealth.cs` per forçar la desactivació del component `PlayerMovement` de forma automàtica (`GetComponent<PlayerMovement>().enabled = false;`).
 
 **Estat:** Codi final tancat i llest per a demostració.
+
+---
+
+### [ITERACIÓ 4] Preparació de l'Entrega Final
+**Data:** 21/04/2026
+**Objectiu:** Organitzar la documentació i generar la memòria final per a la tramesa del projecte.
+
+**Prompt usat (Usuari):**
+> "mira con lo del spec, tengo que hacer una entrega, pone esto: 📄 Entrega 1. Al repositori públic de GitHub Ha d’incloure: 1. La carpeta specs/ (OpenSpec) 2 a la carpeta docs/ amb: prompts-log.md (traçabilitat completa) PDF (veure més avall) 2. Document PDF [...]"
+
+**Resultat de la IA:**
+* S'ha generat el fitxer `docs/entrega.md` amb tota la informació requerida (explicació, procés, problemes, decisions i valoració crítica).
+* S'ha actualitzat aquest fitxer `prompts-log.md` per completar la traçabilitat.
+* S'ha revisat que la carpeta `specs/` estigui al dia amb l'especificació del sistema de "Ready".
+
+**Estat:** Tot a punt per pujar al repositori GitHub i exportar a PDF.
+
