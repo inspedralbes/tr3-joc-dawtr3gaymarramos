@@ -1,0 +1,73 @@
+{
+    "ToniBehavior": {
+        "checkpoints": [
+            {
+                "steps": 16058,
+                "file_path": "results/EntrenamientoFinal/ToniBehavior/ToniBehavior-16058.onnx",
+                "reward": -17.21074787667021,
+                "creation_time": 1776630916.7602987,
+                "auxillary_file_paths": [
+                    "results/EntrenamientoFinal/ToniBehavior/ToniBehavior-16058.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 16058,
+            "file_path": "results/EntrenamientoFinal/ToniBehavior.onnx",
+            "reward": -17.21074787667021,
+            "creation_time": 1776630916.7602987,
+            "auxillary_file_paths": [
+                "results/EntrenamientoFinal/ToniBehavior/ToniBehavior-16058.pt"
+            ]
+        }
+    },
+    "AlvaroBehavior": {
+        "checkpoints": [
+            {
+                "steps": 16058,
+                "file_path": "results/EntrenamientoFinal/AlvaroBehavior/AlvaroBehavior-16058.onnx",
+                "reward": -7.727999094687402,
+                "creation_time": 1776630916.8663785,
+                "auxillary_file_paths": [
+                    "results/EntrenamientoFinal/AlvaroBehavior/AlvaroBehavior-16058.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 16058,
+            "file_path": "results/EntrenamientoFinal/AlvaroBehavior.onnx",
+            "reward": -7.727999094687402,
+            "creation_time": 1776630916.8663785,
+            "auxillary_file_paths": [
+                "results/EntrenamientoFinal/AlvaroBehavior/AlvaroBehavior-16058.pt"
+            ]
+        }
+    },
+    "PolBehavior": {
+        "checkpoints": [
+            {
+                "steps": 16058,
+                "file_path": "results/EntrenamientoFinal/PolBehavior/PolBehavior-16058.onnx",
+                "reward": -28.872246911749244,
+                "creation_time": 1776630916.9769125,
+                "auxillary_file_paths": [
+                    "results/EntrenamientoFinal/PolBehavior/PolBehavior-16058.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 16058,
+            "file_path": "results/EntrenamientoFinal/PolBehavior.onnx",
+            "reward": -28.872246911749244,
+            "creation_time": 1776630916.9769125,
+            "auxillary_file_paths": [
+                "results/EntrenamientoFinal/PolBehavior/PolBehavior-16058.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.2.2+cu121"
+    }
+}

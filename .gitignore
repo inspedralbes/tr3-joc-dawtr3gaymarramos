@@ -1,0 +1,13 @@
+# Brossa de Node.js
+**/node_modules/
+
+# Brossa d'Unity
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/UserPrefs.sqldb
+**/*.csproj
+**/*.sln

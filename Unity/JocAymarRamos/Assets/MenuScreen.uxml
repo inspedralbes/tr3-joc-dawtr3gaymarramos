@@ -1,0 +1,40 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/MainMenu.uss?fileID=7433441132597879392&amp;guid=c3fda857ca79211faab57c23c22dd2d3&amp;type=3" />
+    <Style>
+        #TxtRoomCode .unity-text-field__label, 
+        #TxtRoomCode .unity-base-field__label, 
+        #TxtRoomCode .unity-label {
+            color: white;
+            -unity-text-align: middle-left;
+        }
+        #TxtRoomCode .unity-base-text-field__input {
+            color: black;
+            background-color: white;
+            -unity-text-align: middle-center;
+            border-radius: 5px;
+            padding-top: 12px;
+            padding-bottom: 5px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+    </Style>
+    <ui:VisualElement name="MainContainer" class="main-container" style="flex-grow: 1; -unity-font-definition: url(&quot;project://database/Assets/TipusDeLletra(Font)/FiveFontsatFreddy&apos;s-Regular.ttf?fileID=12800000&amp;guid=fbec91332c23bbe43a24ba4bb2cfae0c&amp;type=3#FiveFontsatFreddy&apos;s-Regular&quot;);">
+        <ui:VisualElement name="BackgroundImage" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Fotos/Gemini_Generated_Image_3d7gnz3d7gnz3d7g.png?fileID=991888880724076730&amp;guid=ac0ecc413e7848c4ba67ade24e7b8db8&amp;type=3#Gemini_Generated_Image_3d7gnz3d7gnz3d7g_0&quot;); position: absolute; top: 0; right: 0; bottom: 0; left: 0; -unity-background-scale-mode: aspect-fill;" />
+        <ui:VisualElement name="LeftPanel" class="left-panel" style="width: 700px; height: 100%; padding-left: 60px; justify-content: center;">
+            <ui:Label text="Five&#10;Nights&#10;at&#10;Pedralbes" name="GameTitle" class="title-text" style="font-size: 70px; line-height: 75px; margin-bottom: 30px; -unity-font-style: bold; color: white;" />
+            <ui:VisualElement name="ButtonsContainer" class="buttons-container" style="font-size: 24px;">
+                <ui:Button name="BtnNewGame" text="Nou Joc" class="menu-button" style="font-size: 24px; height: 40px; margin-bottom: 2px;" />
+                <ui:VisualElement style="height: 15px;" />
+                <ui:Button name="BtnCreateRoom" text="Crear Sala" class="menu-button" style="font-size: 24px; height: 40px; margin-bottom: 2px;" />
+                <ui:Button name="BtnJoinRoom" text="Unir-se a Sala" class="menu-button" style="font-size: 24px; height: 40px; margin-bottom: 2px;" />
+<ui:TextField name="TxtRoomCode" label="Codi Sala:" style="margin-bottom: 5px; width: 350px; height: 65px; font-size: 24px; min-height: 65px; flex-direction: row; align-items: center;" />
+                <ui:Button name="BtnQuit" text="Sortir" class="menu-button" style="font-size: 24px; height: 40px; color: rgb(200, 0, 0);" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="BottomPanel" class="bottom-panel" style="position: absolute; bottom: 20; width: 100%; flex-direction: row; justify-content: space-between; padding: 0 60px;">
+            <ui:Label text="v 1.031" class="footer-text" style="color: rgba(255, 255, 255, 0.5);" />
+            <ui:Label text="Press and hold delete to reset all data." class="footer-text" style="color: rgba(255, 255, 255, 0.5);" />
+            <ui:Label text="©2026 Aymar Ramos" class="footer-text" style="color: rgba(255, 255, 255, 0.5);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
