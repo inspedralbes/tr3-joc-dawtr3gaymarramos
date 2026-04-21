@@ -22,12 +22,13 @@ public class PlayerHealth : MonoBehaviour
     private Animator animator;
     
     public MonoBehaviour scriptMovimiento; 
+    private Rigidbody2D rb;
 
     void Start()
     {
         currentHealth = maxHealth;
         animator = GetComponent<Animator>();
-        
+        rb = GetComponent<Rigidbody2D>();
 
         if (textoVidas == null)
         {
@@ -164,6 +165,11 @@ public class PlayerHealth : MonoBehaviour
         PlayerMovement mov = GetComponent<PlayerMovement>();
         if (mov != null) mov.enabled = false;
 
+        if (rb != null) {
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Static;
+        }
+
         // Emitir a la red si somos el jugador local
         if (mov != null && mov.esLocal && SocketHandler.socket != null)
         {
@@ -185,6 +191,11 @@ public class PlayerHealth : MonoBehaviour
         PlayerMovement mov = GetComponent<PlayerMovement>();
         if (mov != null) mov.enabled = false;
         
+        if (rb != null) {
+            rb.linearVelocity = Vector2.zero;
+            rb.bodyType = RigidbodyType2D.Static;
+        }
+
         if (GameManager.Instance != null) GameManager.Instance.ComprobarEstadoPartida();
     }
     
@@ -201,6 +212,10 @@ public class PlayerHealth : MonoBehaviour
 
         PlayerMovement mov = GetComponent<PlayerMovement>();
         if (mov != null) mov.enabled = true;
+
+        if (rb != null) {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+        }
 
         // Emitir a la red si somos el jugador local
         if (mov != null && mov.esLocal && SocketHandler.socket != null)
@@ -221,6 +236,10 @@ public class PlayerHealth : MonoBehaviour
         if (animator != null) animator.SetBool("EstaMuerto", false);
         PlayerMovement mov = GetComponent<PlayerMovement>();
         if (mov != null) mov.enabled = true;
+
+        if (rb != null) {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+        }
     }
 
     // --- NOTA: La detección por Triggers/Colisiones ha sido sustituida por el chequeo de distancia en Update() ---

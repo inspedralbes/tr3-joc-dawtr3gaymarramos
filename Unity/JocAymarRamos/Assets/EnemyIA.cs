@@ -15,6 +15,10 @@ public class EnemyAI : Agent
     private Vector2 targetPos;
     private float syncTimer = 0f;
 
+    // --- NUEVO: Gestión centralizada de enemigos para evitar que se pisen los eventos ---
+    private static System.Collections.Generic.Dictionary<string, EnemyAI> listaEnemigos = new System.Collections.Generic.Dictionary<string, EnemyAI>();
+    private static bool socketEscuchando = false;
+
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -24,6 +28,13 @@ public class EnemyAI : Agent
 
         Debug.Log($"[EnemyAI] Inicialitzat: {gameObject.name}. Multijugador: {NetworkManager.esMultijugador}, Host: {NetworkManager.esHost}");
 
+        // Registrar este enemigo en la lista global
+        if (!listaEnemigos.ContainsKey(gameObject.name)) {
+            listaEnemigos.Add(gameObject.name, this);
+        } else {
+            listaEnemigos[gameObject.name] = this; // Actualizar si ya existía
+        }
+
         if (NetworkManager.esMultijugador && !NetworkManager.esHost)
         {
             // En el cliente, no queremos que ML-Agents pida decisiones ni use físicas
@@ -31,21 +42,29 @@ public class EnemyAI : Agent
             if (dr != null) dr.enabled = false;
             if (rb != null) rb.bodyType = RigidbodyType2D.Kinematic;
 
-            if (SocketHandler.socket != null)
+            // Registrar el listener de Sockets SOLO UNA VEZ para todos los enemigos
+            if (!socketEscuchando && SocketHandler.socket != null)
             {
+                socketEscuchando = true;
                 SocketHandler.socket.OnUnityThread("enemyUpdated", (response) => {
-                    Debug.Log($"[EnemyAI] ¡LLEGÓ EVENTO! {response.ToString()}");
                     try {
                         var data = response.GetValue<SincroEnemic>(0);
-                        if (data != null && data.enemyName == gameObject.name)
+                        if (data != null && listaEnemigos.ContainsKey(data.enemyName))
                         {
-                            targetPos = new Vector2(data.x, data.y);
+                            // El "Oído Maestro" le pasa la posición al enemigo que toca
+                            listaEnemigos[data.enemyName].targetPos = new Vector2(data.x, data.y);
                         }
-                    } catch (System.Exception e) {
-                        Debug.LogError($"[EnemyAI] Error al leer datos de red: {e.Message}");
-                    }
+                    } catch { }
                 });
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Limpiar la lista al destruir el objeto para evitar errores
+        if (listaEnemigos.ContainsKey(gameObject.name)) {
+            listaEnemigos.Remove(gameObject.name);
         }
     }
 

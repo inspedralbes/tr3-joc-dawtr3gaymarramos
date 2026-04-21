@@ -2,21 +2,21 @@ using System;
 
 [Serializable]
 public class SincroEnemic {
-    public string room;
-    public string enemyName;
-    public float x;
-    public float y;
+    public string room { get; set; }
+    public string enemyName { get; set; }
+    public float x { get; set; }
+    public float y { get; set; }
 }
 
 [Serializable]
 public class PlayerStateData {
-    public string room;
-    public bool isHost;
+    public string room { get; set; }
+    public bool isHost { get; set; }
 }
 
 [Serializable]
 public class PlayerDamageData {
-    public string room;
-    public bool isHost; // Para saber qué jugador ha sido golpeado
-    public int damage;
+    public string room { get; set; }
+    public bool isHost { get; set; }
+    public int damage { get; set; }
 }
