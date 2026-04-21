@@ -90,6 +90,8 @@ io.on('connection', (socket) => {
         const room = data.room || socket.room;
         if (room) {
             socket.to(room).emit('enemyUpdated', data);
+        } else {
+            socket.broadcast.emit('enemyUpdated', data);
         }
     });
 
@@ -98,6 +100,8 @@ io.on('connection', (socket) => {
         const room = data.room || socket.room;
         if (room) {
             socket.to(room).emit('onPlayerDowned', data);
+        } else {
+            socket.broadcast.emit('onPlayerDowned', data);
         }
     });
 
@@ -105,6 +109,8 @@ io.on('connection', (socket) => {
         const room = data.room || socket.room;
         if (room) {
             socket.to(room).emit('onPlayerRevived', data);
+        } else {
+            socket.broadcast.emit('onPlayerRevived', data);
         }
     });
 
@@ -113,6 +119,8 @@ io.on('connection', (socket) => {
         const room = data.room || socket.room;
         if (room) {
             socket.to(room).emit('onPlayerDamaged', data);
+        } else {
+            socket.broadcast.emit('onPlayerDamaged', data);
         }
     });
 

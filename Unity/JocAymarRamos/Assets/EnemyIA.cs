@@ -34,15 +34,16 @@ public class EnemyAI : Agent
             if (SocketHandler.socket != null)
             {
                 SocketHandler.socket.OnUnityThread("enemyUpdated", (response) => {
+                    Debug.Log($"[EnemyAI] ¡LLEGÓ EVENTO! {response.ToString()}");
                     try {
                         var data = response.GetValue<SincroEnemic>(0);
                         if (data != null && data.enemyName == gameObject.name)
                         {
                             targetPos = new Vector2(data.x, data.y);
-                            // Log opcional para confirmar recepción (desactivar si hay mucho spam)
-                            // Debug.Log($"[EnemyAI] {gameObject.name} recibió posición: {targetPos}");
                         }
-                    } catch { }
+                    } catch (System.Exception e) {
+                        Debug.LogError($"[EnemyAI] Error al leer datos de red: {e.Message}");
+                    }
                 });
             }
         }
@@ -129,13 +130,15 @@ public class EnemyAI : Agent
                     // Si es multijugador, avisamos a la red para que el otro jugador pierda vida
                     if (NetworkManager.esMultijugador && SocketHandler.socket != null)
                     {
-                        string sala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SALA" : NetworkManager.CodiSalaActual;
+                        string sala = NetworkManager.CodiSalaActual;
+                        if (string.IsNullOrEmpty(sala)) sala = "GLOBAL_ROOM"; // Sala de emergencia
+
                         SocketHandler.socket.Emit("playerDamage", new PlayerDamageData {
                             room = sala,
                             isHost = playerMov.isHostCharacter,
                             damage = 1
                         });
-                        Debug.Log($"[Host] Golpeado {playerMov.gameObject.name}. Enviando daño a la red.");
+                        Debug.Log($"[Host] Enviando daño a sala {sala} para {playerMov.gameObject.name}");
                     }
                 }
             }
@@ -188,7 +191,12 @@ public class EnemyAI : Agent
             if (syncTimer >= 0.1f && SocketHandler.socket != null)
             {
                 syncTimer = 0f;
-                string sala = string.IsNullOrEmpty(NetworkManager.CodiSalaActual) ? "SALA" : NetworkManager.CodiSalaActual;
+                string sala = NetworkManager.CodiSalaActual;
+                if (string.IsNullOrEmpty(sala)) sala = "GLOBAL_ROOM";
+                
+                // Log cada 5 segundos para verificar
+                if (Time.time % 5 < 0.1f) Debug.Log($"[Host] Sincronizando en sala: {sala}");
+
                 SocketHandler.socket.Emit("enemyMove", new SincroEnemic {
                     room = sala, 
                     enemyName = gameObject.name, 
