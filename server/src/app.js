@@ -87,12 +87,9 @@ io.on('connection', (socket) => {
 
     // NUEVO: Sincronización de enemigos (solo el Host envía esto)
     socket.on('enemyMove', (data) => {
-        const room = data.room || socket.room;
-        if (room) {
-            socket.to(room).emit('enemyUpdated', data);
-        } else {
-            socket.broadcast.emit('enemyUpdated', data);
-        }
+        // Enviamos a TODOS (incluido el Host para confirmar o solo a otros)
+        // Usamos io.emit para asegurar que llegue a todo el mundo
+        io.emit('enemyUpdated', data);
     });
 
     // NUEVO: Sincronización de estado abatido
@@ -116,12 +113,7 @@ io.on('connection', (socket) => {
 
     // NUEVO: Sincronización de daño
     socket.on('playerDamage', (data) => {
-        const room = data.room || socket.room;
-        if (room) {
-            socket.to(room).emit('onPlayerDamaged', data);
-        } else {
-            socket.broadcast.emit('onPlayerDamaged', data);
-        }
+        io.emit('onPlayerDamaged', data);
     });
 
     // Evento para cuando el Host le da a "Comenzar Partida"
