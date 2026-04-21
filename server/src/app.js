@@ -108,6 +108,14 @@ io.on('connection', (socket) => {
         }
     });
 
+    // NUEVO: Sincronización de daño
+    socket.on('playerDamage', (data) => {
+        const room = data.room || socket.room;
+        if (room) {
+            socket.to(room).emit('onPlayerDamaged', data);
+        }
+    });
+
     // Evento para cuando el Host le da a "Comenzar Partida"
     socket.on('startGame', (roomCode) => {
         io.in(roomCode).emit('onGameStarted');

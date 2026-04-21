@@ -1,12 +1,6 @@
 using UnityEngine;
 using TMPro;
 
-[System.Serializable]
-public class PlayerStateData {
-    public string room;
-    public bool isHost;
-}
-
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Configuración de Vida")]
@@ -64,6 +58,18 @@ public class PlayerHealth : MonoBehaviour
                     if (data.isHost == mov.isHostCharacter) SyncRevivir();
                 });
             }
+
+            // --- NUEVO: Sincronización de Daño (Todos escuchan por si les pegan) ---
+            SocketHandler.socket.OnUnityThread("onPlayerDamaged", (response) => {
+                try {
+                    var data = response.GetValue<PlayerDamageData>(0);
+                    if (data != null && data.isHost == mov.isHostCharacter && mov.esLocal)
+                    {
+                        // Solo aplico el daño si el mensaje es para MÍ y yo soy el jugador LOCAL en este PC
+                        ApplyLocalDamage(data.damage);
+                    }
+                } catch { }
+            });
         }
     }
 
@@ -109,7 +115,23 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (estaAbatido) return; // Si ya está llorando en el suelo, no le hacen más daño
+        // En multijugador, el daño lo suele gestionar el Host al detectar colisión con el enemigo.
+        // Si jugamos en solitario, se aplica directamente.
+        if (GameManager.Instance != null && GameManager.Instance.esMultijugador)
+        {
+            // En multijugador, esta función solo se llama desde OnCollision del Enemigo (en el Host)
+            // o desde el evento de red.
+            ApplyLocalDamage(damage);
+        }
+        else
+        {
+            ApplyLocalDamage(damage);
+        }
+    }
+
+    private void ApplyLocalDamage(int damage)
+    {
+        if (estaAbatido) return;
 
         currentHealth -= damage;
         ActualizarTexto();
